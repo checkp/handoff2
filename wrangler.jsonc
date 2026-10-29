@@ -1,0 +1,34 @@
+{
+  // Handoff: hosted MCP service on Cloudflare Workers. One deployment profile (Workers + D1 + R2).
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "handoff2",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  // Invocation logs record each request URL, which can carry upload and download tickets. Keep only our own logs.
+  "observability": { "enabled": true, "logs": { "enabled": true, "invocation_logs": false } },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "handoff",
+      // This deployment's database. The Deploy to Cloudflare button and npm run setup put your own id here.
+      "database_id": "781598a5-7c09-43af-9bbb-4f7acdc904f6",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "r2_buckets": [{ "binding": "BLOBS", "bucket_name": "handoff-attachments","preview_bucket_name": "handoff-attachments" }],
+  // Static files (fonts, from npm run assets). Served before the Worker for exact paths.
+  "assets": { "directory": "./public", "binding": "ASSETS" },
+  // The deployed version id and time, shown on the console's Ops page.
+  "version_metadata": { "binding": "CF_VERSION_METADATA" },
+  // Cleanup, hourly. Each run is bounded (src/env.ts cleanupBatch, cleanupRounds) and logs backlog: true if it stopped early.
+  "triggers": { "crons": ["17 * * * *"] }
+  // No "vars": every setting has a default in the code, so the Deploy to Cloudflare button asks for nothing but
+  // the HANDOFF_SETUP_CODE secret (a variable listed here, even empty, becomes a required field there).
+  // Optional variables, set under "vars" or in the dashboard, documented in docs/DEPLOY.md:
+  //   PUBLIC_URL             public origin without a trailing slash; empty = the origin each request came to.
+  //   HANDOFF_ENV            "dev" honours DEV_TOKENS for local wrangler dev; anything else is production.
+  //   MAX_ATTACHMENT_BYTES   bound on one file, default 26214400 (25 MiB).
+  //   IMPORT_HOST_ALLOWLIST  hosts for server-side imports of host file URLs (ChatGPT files); empty = off.
+  //   HANDOFF_UPDATE_CHECK   "off" turns off the daily update check (README, "Update check").
+}

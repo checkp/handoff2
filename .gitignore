@@ -1,0 +1,10 @@
+node_modules/
+.wrangler/
+.dev.vars
+dist/
+*.log
+.DS_Store
+public/
+.quorum/
+# The control center's config (handoff.infraworks.net); the public config is wrangler.jsonc.
+wrangler.playground.jsonc
